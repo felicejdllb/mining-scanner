@@ -106,6 +106,9 @@
         }
 
         micBtn.onclick = () => {
+            // NEW: Prime the iOS audio engine with a silent utterance instantly on tap
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+
             resultDiv.innerHTML = '';
             statusDiv.innerText = 'Listening...';
             micBtn.style.backgroundColor = '#ff4d4d'; // Turns red while listening
