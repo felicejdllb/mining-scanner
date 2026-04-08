@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SC Scanner</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 { color: #f0c328; text-transform: uppercase; letter-spacing: 2px; text-align: center; }
+        #mic-btn {
+            background-color: #f0c328;
+            color: #0d1117;
+            border: none;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(240, 195, 40, 0.3);
+            margin: 40px 0;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        #mic-btn:active { transform: scale(0.95); }
+        #status, #result { font-size: 1.5rem; text-align: center; margin-top: 20px; min-height: 40px;}
+        .highlight { color: #f0c328; font-weight: bold; font-size: 2rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Mining Scanner</h1>
+    <button id="mic-btn">TAP TO<br>SPEAK</button>
+    <div id="status">Ready.</div>
+    <div id="result"></div>
+
+    <script>
+        const resources = [
+            {name:'Quantainium',rs:3170}, {name:'Stileron',rs:3185}, {name:'Savrilium',rs:3200},
+            {name:'Ouratite',rs:3370}, {name:'Riccite',rs:3385}, {name:'Lindinium',rs:3400},
+            {name:'Beryl',rs:3540}, {name:'Taranite',rs:3555}, {name:'Borase',rs:3570},
+            {name:'Gold',rs:3585}, {name:'Bexalite',rs:3600}, {name:'Laranite',rs:3825},
+            {name:'Aslarite',rs:3840}, {name:'Titanium',rs:3855}, {name:'Tungsten',rs:3870},
+            {name:'Agricium',rs:3885}, {name:'Torite',rs:3900}, {name:'Hephestanite',rs:4180},
+            {name:'Tin',rs:4195}, {name:'Quartz',rs:4210}, {name:'Corundum',rs:4225},
+            {name:'Copper',rs:4240}, {name:'Silicon',rs:4255}, {name:'Iron',rs:4270},
+            {name:'Aluminium',rs:4285}, {name:'Ice',rs:4300}
+        ];
+
+        const micBtn = document.getElementById('mic-btn');
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+
+        // Initialize iOS Speech Recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // Text to Speech Function
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            // Apple's default iOS English voice is female
+            window.speechSynthesis.speak(utterance);
+        }
+
+        micBtn.onclick = () => {
+            resultDiv.innerHTML = '';
+            statusDiv.innerText = 'Listening...';
+            micBtn.style.backgroundColor = '#ff4d4d'; // Turns red while listening
+            recognition.start();
+        };
+
+        recognition.onresult = (event) => {
+            micBtn.style.backgroundColor = '#f0c328';
+            let spokenText = event.results[0][0].transcript.replace(/,/g, '').trim();
+            statusDiv.innerText = `Heard: "${spokenText}"`;
+            
+            // Extract the number from the spoken text
+            let numberMatch = spokenText.match(/\d+/);
+            
+            if (numberMatch) {
+                let signature = parseInt(numberMatch[0], 10);
+                findResource(signature);
+            } else {
+                let errorMsg = "I didn't hear a number. Please try again.";
+                resultDiv.innerText = errorMsg;
+                speak(errorMsg);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            micBtn.style.backgroundColor = '#f0c328';
+            statusDiv.innerText = `Microphone error: ${event.error}`;
+        };
+
+        function findResource(inputSig) {
+            let foundMatch = false;
+
+            for (let i = 0; i < resources.length; i++) {
+                if (inputSig % resources[i].rs === 0) {
+                    let rocks = inputSig / resources[i].rs;
+                    let successText = `Found it. The resource is ${resources[i].name}, with ${rocks} rocks.`;
+                    
+                    resultDiv.innerHTML = `<span class="highlight">${resources[i].name}</span><br>${rocks} Node(s)`;
+                    speak(successText);
+                    foundMatch = true;
+                    break;
+                }
+            }
+
+            if (!foundMatch) {
+                let failText = "No exact match found for that signature.";
+                resultDiv.innerText = failText;
+                speak(failText);
+            }
+        }
+    </script>
+</body>
+</html>
