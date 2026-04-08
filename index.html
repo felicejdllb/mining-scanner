@@ -72,10 +72,36 @@
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
 
+       // Load voices in the background (iOS requires this)
+        let availableVoices = [];
+        window.speechSynthesis.onvoiceschanged = () => {
+            availableVoices = window.speechSynthesis.getVoices();
+        };
+
         // Text to Speech Function
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
-            // Apple's default iOS English voice is female
+            
+            // Make sure voices are loaded
+            if (availableVoices.length === 0) {
+                availableVoices = window.speechSynthesis.getVoices();
+            }
+
+            // Look for high-quality female voices built into iOS
+            let preferredVoice = availableVoices.find(voice => voice.name === 'Samantha') || 
+                                 availableVoices.find(voice => voice.name === 'Karen') || 
+                                 availableVoices.find(voice => voice.name === 'Moira') || 
+                                 availableVoices.find(voice => voice.lang === 'en-GB' || voice.lang === 'en-AU'); 
+            
+            // If it finds a better voice, use it
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+            
+            // Adjust speed and pitch slightly for a more natural sound
+            utterance.rate = 1.0; 
+            utterance.pitch = 1.1;
+
             window.speechSynthesis.speak(utterance);
         }
 
