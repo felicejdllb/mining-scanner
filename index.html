@@ -118,6 +118,8 @@
 
         recognition.onresult = (event) => {
             micBtn.style.backgroundColor = '#f0c328';
+            micBtn.innerHTML = 'TAP TO<br>SPEAK'; // Resets the button text
+            
             let spokenText = event.results[0][0].transcript.replace(/,/g, '').trim();
             statusDiv.innerText = `Heard: "${spokenText}"`;
             
@@ -136,6 +138,7 @@
 
         recognition.onerror = (event) => {
             micBtn.style.backgroundColor = '#f0c328';
+            micBtn.innerHTML = 'TAP TO<br>SPEAK'; // Resets the button text
             statusDiv.innerText = `Microphone error: ${event.error}`;
         };
 
